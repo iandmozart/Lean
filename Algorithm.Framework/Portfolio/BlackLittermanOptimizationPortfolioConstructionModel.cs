@@ -264,7 +264,7 @@ namespace QuantConnect.Algorithm.Framework.Portfolio
                             Algorithm.SetRunTimeError(new ArgumentNullException("BlackLittermanOptimizationPortfolioConstructionModel does not accept \'null\' as Insight.Magnitude. Please make sure your Alpha Model is generating Insights with the Magnitude property set."));
                             return targets;
                         }
-                        symbolData.Add(Algorithm.Time, insight.Magnitude.Value.SafeDecimalCast());
+                        symbolData.Add(insight.GeneratedTimeUtc, insight.Magnitude.Value.SafeDecimalCast());
                     }
                 }
                 // Get symbols' returns

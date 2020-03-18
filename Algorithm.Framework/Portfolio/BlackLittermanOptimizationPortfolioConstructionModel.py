@@ -109,9 +109,9 @@ class BlackLittermanOptimizationPortfolioConstructionModel(PortfolioConstruction
                 symbol = insight.Symbol
                 symbolData = self.symbolDataBySymbol.get(symbol, self.BlackLittermanSymbolData(symbol, self.lookback, self.period))
                 if insight.Magnitude is None:
-                    self.Algorithm.SetRunTimeError(ArgumentNullExceptionArgumentNullException('BlackLittermanOptimizationPortfolioConstructionModel does not accept \'None\' as Insight.Magnitude. Please make sure your Alpha Model is generating Insights with the Magnitude property set.'))
+                    self.Algorithm.SetRunTimeError(ArgumentNullException('BlackLittermanOptimizationPortfolioConstructionModel does not accept \'None\' as Insight.Magnitude. Please make sure your Alpha Model is generating Insights with the Magnitude property set.'))
                     return targets
-                symbolData.Add(self.Algorithm.Time, insight.Magnitude)
+                symbolData.Add(insight.GeneratedTimeUtc, insight.Magnitude)
                 returns[symbol] = symbolData.Return
 
             returns = pd.DataFrame(returns)
@@ -301,13 +301,16 @@ class BlackLittermanOptimizationPortfolioConstructionModel(PortfolioConstruction
                 self.window.Add(value)
 
         def Add(self, time, value):
+            if self.window.Samples > 0 and self.window[0].EndTime == time:
+                return;
+
             item = IndicatorDataPoint(self.symbol, time, value)
             self.window.Add(item)
 
         @property
         def Return(self):
             return pd.Series(
-                data = [float(x.Value) for x in self.window],
+                data = [x.Value for x in self.window],
                 index = [x.EndTime for x in self.window])
 
         @property
