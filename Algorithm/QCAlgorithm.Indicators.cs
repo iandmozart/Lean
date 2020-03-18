@@ -1917,15 +1917,20 @@ namespace QuantConnect.Algorithm
             };
 
             var consolidator = GetIndicatorWarmUpConsolidator(symbol, period, onDataConsolidated);
-            history.PushThrough(bar => consolidator.Update(bar));
-
+            BaseData lastBar = null;
+            history.PushThrough(bar =>
+                {
+                    lastBar = bar;
+                    consolidator.Update(bar);
+                }
+            );
             // Scan for time after we've pumped all the data through for this consolidator
-            var lastBar = history.LastOrDefault();
-            if (lastBar != null && lastBar.ContainsKey(symbol))
+            if (lastBar != null)
             {
-                consolidator.Scan(((IBaseData)lastBar[symbol]).EndTime);
+                consolidator.Scan(lastBar.EndTime);
             }
 
+            SubscriptionManager.RemoveConsolidator(symbol, consolidator);
             return indicator;
         }
 
@@ -1969,13 +1974,20 @@ namespace QuantConnect.Algorithm
 
             // Push the historical data through a consolidator
             var consolidator = GetIndicatorWarmUpConsolidator(symbol, period, onDataConsolidated);
-            history.PushThrough(bar => consolidator.Update(bar));
-
+            BaseData lastBar = null;
+            history.PushThrough(bar =>
+                {
+                    lastBar = bar;
+                    consolidator.Update(bar);
+                }
+            );
             // Scan for time after we've pumped all the data through for this consolidator
-            var lastBar = history.LastOrDefault();
-            var lastTime = lastBar == null ? DateTime.MinValue : lastBar[symbol].EndTime;
-            consolidator.Scan(lastTime);
+            if (lastBar != null)
+            {
+                consolidator.Scan(lastBar.EndTime);
+            }
 
+            SubscriptionManager.RemoveConsolidator(symbol, consolidator);
             return indicator;
         }
 
